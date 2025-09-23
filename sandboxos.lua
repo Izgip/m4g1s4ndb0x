@@ -286,8 +286,8 @@ function sandboxos.monitorExecution(env, program_path, ...)
         end
     end
     
-    -- Execute program in protected environment
-    local ok, program_result = xpcall(function()
+    -- Create the execution function that captures the variables we need
+    local function executeProgram()
         -- Load the program
         if not fs.exists(program_path) then
             error("Program not found: " .. program_path)
@@ -303,11 +303,14 @@ function sandboxos.monitorExecution(env, program_path, ...)
             error("Failed to load program: " .. err)
         end
         
-        -- Execute with timeout checking
-        local args = program_args
-        local co = coroutine.create(function()
-            return chunk(table.unpack(args))
-        end)
+        -- Execute with the captured arguments
+        return chunk(table.unpack(program_args))
+    end
+    
+    -- Execute program in protected environment
+    local ok, program_result = xpcall(function()
+        -- Execute with timeout checking using coroutine
+        local co = coroutine.create(executeProgram)
         
         while coroutine.status(co) ~= "dead" do
             checkTimeout()
