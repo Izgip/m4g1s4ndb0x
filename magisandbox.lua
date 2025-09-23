@@ -390,7 +390,7 @@ if arg and arg[0] and arg[0]:match("magisandbox") then
     
     if #args == 0 then
         print("Magisandbox - Advanced Sandboxing System")
-        print("Usage: sandboxos <level> <program> [args...]")
+        print("Usage: magisandbox <level> <program> [args...]")
         print("Levels: 0=NONE, 1=LOW, 2=MEDIUM, 3=HIGH, 4=MAXIMUM")
         print("Example: magisandbox 2 /rom/programs/fun/advanced/paint")
         return
