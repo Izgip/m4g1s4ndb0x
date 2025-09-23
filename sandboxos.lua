@@ -226,6 +226,7 @@ end
 
 -- Monitor program execution
 function sandboxos.monitorExecution(env, program_path, ...)
+    local program_args = {...}
     local start_time = os.epoch("utc")
     local result = {success = false, output = "", violations = {}}
     
@@ -287,7 +288,6 @@ function sandboxos.monitorExecution(env, program_path, ...)
     
     -- Execute program in protected environment
     local ok, program_result = xpcall(function()
-        local program_args = {...}
         -- Load the program
         if not fs.exists(program_path) then
             error("Program not found: " .. program_path)
