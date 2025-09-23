@@ -304,7 +304,7 @@ function sandboxos.monitorExecution(env, program_path, ...)
         end
         
         -- Execute with timeout checking
-        local args = {...}
+        local args = program_args
         local co = coroutine.create(function()
             return chunk(table.unpack(args))
         end)
