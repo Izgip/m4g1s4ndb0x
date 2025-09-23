@@ -287,6 +287,7 @@ function sandboxos.monitorExecution(env, program_path, ...)
     
     -- Execute program in protected environment
     local ok, program_result = xpcall(function()
+        local program_args = {...}
         -- Load the program
         if not fs.exists(program_path) then
             error("Program not found: " .. program_path)
@@ -338,6 +339,7 @@ end
 
 -- Main function to run programs with sandboxing
 function sandboxos.run(program_path, level, ...)
+    local args = {...}
     if not program_path then
         error("Program path required")
     end
