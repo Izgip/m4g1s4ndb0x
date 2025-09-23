@@ -1,4 +1,4 @@
--- sandboxos.lua
+-- magisandbox.lua
 -- Advanced Sandboxing System for CC:Tweaked
 
 local sandboxos = {}
@@ -385,14 +385,14 @@ function sandboxos.run(program_path, level, ...)
 end
 
 -- Command line interface
-if arg and arg[0] and arg[0]:match("sandboxos") then
+if arg and arg[0] and arg[0]:match("magisandbox") then
     local args = {...}
     
     if #args == 0 then
-        print("SandBoxOS - Advanced Sandboxing System")
+        print("Magisandbox - Advanced Sandboxing System")
         print("Usage: sandboxos <level> <program> [args...]")
         print("Levels: 0=NONE, 1=LOW, 2=MEDIUM, 3=HIGH, 4=MAXIMUM")
-        print("Example: sandboxos 2 /rom/programs/fun/advanced/paint")
+        print("Example: magisandbox 2 /rom/programs/fun/advanced/paint")
         return
     end
     
