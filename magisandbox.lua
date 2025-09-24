@@ -311,10 +311,29 @@ function sandboxos.monitorExecution(env, program_path, ...)
             return _G[k]
         end
     })
-    for k, v in pairs(env.injected_apis or {}) do
-        secure_env[k] = v
+    if not secure_env.os then secure_env.os = {} end
+    for k, v in pairs(os) do
+        if env.api_restrictions.isAllowed("os." .. k) then
+            secure_env.os[k] = v
+        elseif k == "pullEvent" or k == "startTimer" then
+            -- Exception: allow essential functions like os.pullEvent even if os.* is blocked
+            secure_env.os[k] = v
+        else
+            secure_env.os[k] = function()
+                error("Blocked os API: os." .. k)
+            end
+        end
     end
-    
+    if not secure_env.term then secure_env.term = {} end
+    for k, v in pairs(term) do
+        if env.api_restrictions.isAllowed("term." .. k) then
+            secure_env.term[k] = v
+        else
+            secure_env.term[k] = function()
+                error("Blocked term API: term." .. k)
+            end
+        end
+    end
     -- Override filesystem functions
     secure_env.fs = {}
     for name, func in pairs(fs) do
