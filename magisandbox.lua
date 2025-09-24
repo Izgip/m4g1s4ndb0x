@@ -398,7 +398,10 @@ function sandboxos.monitorExecution(env, program_path, ...)
         -- Execute with the captured arguments
         return chunk(table.unpack(program_args))
     end
-    
+    print("os:", type(secure_env.os))
+    print("os.pullEvent:", type(secure_env.os and secure_env.os.pullEvent))
+    print("term:", type(secure_env.term))
+    print("term.write:", type(secure_env.term and secure_env.term.write))
     -- Execute program in protected environment
     local ok, program_result = xpcall(function()
         -- Execute with timeout checking using coroutine
