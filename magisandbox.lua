@@ -302,6 +302,7 @@ function sandboxos.monitorExecution(env, program_path, ...)
             if env.injected_apis and env.injected_apis[k] then
                 return env.injected_apis[k]
             end
+            
              -- Then check restrictions
             if not env.api_restrictions.isAllowed(k) then
                 table.insert(result.violations, "Blocked API access: " .. k)
@@ -310,6 +311,9 @@ function sandboxos.monitorExecution(env, program_path, ...)
             return _G[k]
         end
     })
+    for k, v in pairs(env.injected_apis or {}) do
+        secure_env[k] = v
+    end
     
     -- Override filesystem functions
     secure_env.fs = {}
