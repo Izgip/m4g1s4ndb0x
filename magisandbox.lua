@@ -205,7 +205,9 @@ function sandboxos.setupAPI(env, policy)
          local safe_os = {
              pullEvent = os.pullEvent,
              pullEventRaw = os.pullEventRaw,
-             queueEvent = os.queueEvent
+             queueEvent = os.queueEvent,
+             startTimer = os.startTimer,
+            
          }
         return setmetatable(safe_os, {
             __index = function(_, k)
