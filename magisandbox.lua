@@ -199,7 +199,20 @@ function sandboxos.setupAPI(env, policy)
         end
         return true
     end
-
+    env.api_restrictions = api_restrictions
+    env.injected_apis = {}
+    local function createSafeOS()
+         local safe_os = {
+             pullEvent = os.pullEvent,
+             pullEventRaw = os.pullEventRaw,
+             queueEvent = os.queueEvent
+         }
+        return setmetatable(safe_os, {
+            __index = function(_, k)
+                error("Blocked os API: os." .. tostring(k))
+            end
+        })
+    end
     --- Safe `term` simulation (optional, always injected if `term.` is blocked)
     local function createSafeTerm()
         local safe_term = {}
@@ -223,7 +236,7 @@ function sandboxos.setupAPI(env, policy)
 
         return safe_term
     end
-
+    
     --- Safe `window` stub
     local function createSafeWindow()
         return {
@@ -238,7 +251,10 @@ function sandboxos.setupAPI(env, policy)
 
     --- Inject safe term/window only if term.* or window.* is blocked
     env.injected_apis = {}
-
+    if blocked_apis["os."] then
+        env.injected_apis.os = createSafeOS()
+    end
+        
     if blocked_apis["term."] then
         env.injected_apis.term = createSafeTerm()
     end
@@ -247,7 +263,6 @@ function sandboxos.setupAPI(env, policy)
         env.injected_apis.window = createSafeWindow()
     end
 
-    env.api_restrictions = api_restrictions
     return env
 end
 
