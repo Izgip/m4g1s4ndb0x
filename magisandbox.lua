@@ -171,7 +171,7 @@ end
 function sandboxos.setupAPI(env, policy)
     local api_restrictions = {}
     local blocked_apis = {}
-    
+
     -- Convert policy restrictions to blocked API list
     if type(policy.api_restrictions) == "table" then
         for _, api in ipairs(policy.api_restrictions) do
@@ -189,7 +189,8 @@ function sandboxos.setupAPI(env, policy)
             ["io."] = true, ["term."] = true, ["window."] = true
         }
     end
-    
+
+    --- API restriction checker
     api_restrictions.isAllowed = function(api_name)
         for blocked_pattern, _ in pairs(blocked_apis) do
             if api_name:match(blocked_pattern) then
@@ -198,7 +199,54 @@ function sandboxos.setupAPI(env, policy)
         end
         return true
     end
-    
+
+    --- Safe `term` simulation (optional, always injected if `term.` is blocked)
+    local function createSafeTerm()
+        local safe_term = {}
+        local allowed_methods = {
+            "write", "blit", "clear", "clearLine", "setCursorPos",
+            "setCursorBlink", "setTextColor", "setBackgroundColor",
+            "getCursorPos", "getSize", "isColor"
+        }
+
+        for _, method in ipairs(allowed_methods) do
+            if term[method] then
+                safe_term[method] = function(...) return term[method](...) end
+            end
+        end
+
+        -- Stub dangerous methods
+        safe_term.redirect = function() error("term.redirect is blocked in sandbox") end
+        safe_term.native = function() error("term.native is blocked in sandbox") end
+        safe_term.current = function() return term end -- safe fallback
+        safe_term.native = function() return term end
+
+        return safe_term
+    end
+
+    --- Safe `window` stub
+    local function createSafeWindow()
+        return {
+            setVisible = function() end,
+            redraw = function() end,
+            setCursorPos = function() end,
+            write = function() end,
+            clear = function() end,
+            -- add more stubs as needed
+        }
+    end
+
+    --- Inject safe term/window only if term.* or window.* is blocked
+    env.injected_apis = {}
+
+    if blocked_apis["term."] then
+        env.injected_apis.term = createSafeTerm()
+    end
+
+    if blocked_apis["window."] then
+        env.injected_apis.window = createSafeWindow()
+    end
+
     env.api_restrictions = api_restrictions
     return env
 end
@@ -232,8 +280,12 @@ function sandboxos.monitorExecution(env, program_path, ...)
     
     -- Create secure environment
     local secure_env = setmetatable({}, {
-        __index = function(t, k)
+        __index = function(_, k)
             -- Check API restrictions
+            if env.injected_apis and env.injected_apis[k] then
+                return env.injected_apis[k]
+            end
+             -- Then check restrictions
             if not env.api_restrictions.isAllowed(k) then
                 table.insert(result.violations, "Blocked API access: " .. k)
                 return nil
